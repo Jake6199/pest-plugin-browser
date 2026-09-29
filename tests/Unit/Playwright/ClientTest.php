@@ -13,8 +13,8 @@ it('reports a closed connection instead of looping on it', function (): void {
     $client = new Client();
     $client->setTimeout(100);
 
-    new ReflectionProperty(Client::class, 'websocketConnection')->setValue($client, $connection);
-    new ReflectionProperty(Client::class, 'requestGraceSeconds')->setValue($client, 0.2);
+    (new ReflectionProperty(Client::class, 'websocketConnection'))->setValue($client, $connection);
+    (new ReflectionProperty(Client::class, 'requestGraceSeconds'))->setValue($client, 0.2);
 
     expect(fn (): array => iterator_to_array($client->execute('page@1', 'goto')))
         ->toThrow(RuntimeException::class, 'The Playwright server closed the connection unexpectedly.');
@@ -29,8 +29,8 @@ it('gives up on a request that only ever receives unrelated messages', function 
     $client = new Client();
     $client->setTimeout(100);
 
-    new ReflectionProperty(Client::class, 'websocketConnection')->setValue($client, $connection);
-    new ReflectionProperty(Client::class, 'requestGraceSeconds')->setValue($client, 0.2);
+    (new ReflectionProperty(Client::class, 'websocketConnection'))->setValue($client, $connection);
+    (new ReflectionProperty(Client::class, 'requestGraceSeconds'))->setValue($client, 0.2);
 
     expect(fn (): array => iterator_to_array($client->execute('page@1', 'goto')))
         ->toThrow('The Playwright server did not answer [goto]');
@@ -53,7 +53,7 @@ it('returns the response matching the request id', function (): void {
 
     $client = new Client();
 
-    new ReflectionProperty(Client::class, 'websocketConnection')->setValue($client, $connection);
+    (new ReflectionProperty(Client::class, 'websocketConnection'))->setValue($client, $connection);
 
     $messages = iterator_to_array($client->execute('page@1', 'goto'));
 
@@ -76,7 +76,7 @@ it('sends the timeout as metadata so the server enforces it', function (): void 
     $client = new Client();
     $client->setTimeout(100);
 
-    new ReflectionProperty(Client::class, 'websocketConnection')->setValue($client, $connection);
+    (new ReflectionProperty(Client::class, 'websocketConnection'))->setValue($client, $connection);
 
     iterator_to_array($client->execute('page@1', 'click'));
 
