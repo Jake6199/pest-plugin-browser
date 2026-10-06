@@ -32,8 +32,12 @@ it('gives up on a request that only ever receives unrelated messages', function 
     new ReflectionProperty(Client::class, 'websocketConnection')->setValue($client, $connection);
     new ReflectionProperty(Client::class, 'requestGraceSeconds')->setValue($client, 0.2);
 
-    expect(fn (): array => iterator_to_array($client->execute('page@1', 'goto')))
-        ->toThrow('The Playwright server did not answer [goto]');
+    // Drained without collecting: every unrelated message is yielded until the deadline.
+    expect(function () use ($client): void {
+        foreach ($client->execute('page@1', 'goto') as $message) {
+            //
+        }
+    })->toThrow('The Playwright server did not answer [goto]');
 });
 
 it('returns the response matching the request id', function (): void {
