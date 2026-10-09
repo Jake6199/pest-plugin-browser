@@ -142,8 +142,9 @@ final class Client
 
                 // The call log says what the action was waiting on, e.g. which element
                 // intercepted a click, where the bare message only says "Timeout exceeded".
+                // Each line arrives already indented and bulleted by the server.
                 if (isset($response['log']) && $response['log'] !== []) {
-                    $message .= "\nCall log:\n  - ".implode("\n  - ", $response['log']);
+                    $message .= "\nCall log:\n".implode("\n", $response['log']);
                 }
 
                 throw new ExpectationFailedException($message);
