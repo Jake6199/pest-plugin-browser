@@ -97,8 +97,8 @@ it('appends the call log to the error so a timeout says what it was waiting for'
             'id' => $sent['id'],
             'error' => ['error' => ['message' => 'Timeout 100ms exceeded.']],
             'log' => [
-                'waiting for locator(\'[data-cy="submit"]\')',
-                'element is not stable',
+                '  - waiting for locator(\'[data-cy="submit"]\')',
+                '    - element is not stable',
             ],
         ]));
     });
@@ -108,5 +108,5 @@ it('appends the call log to the error so a timeout says what it was waiting for'
     (new ReflectionProperty(Client::class, 'websocketConnection'))->setValue($client, $connection);
 
     expect(fn (): array => iterator_to_array($client->execute('page@1', 'click')))
-        ->toThrow("Timeout 100ms exceeded.\nCall log:\n  - waiting for locator('[data-cy=\"submit\"]')\n  - element is not stable");
+        ->toThrow("Timeout 100ms exceeded.\nCall log:\n  - waiting for locator('[data-cy=\"submit\"]')\n    - element is not stable");
 });
