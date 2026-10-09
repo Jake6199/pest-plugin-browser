@@ -116,7 +116,7 @@ final class Client
                 throw $this->unanswered($method, $allowance);
             }
 
-            /** @var array{id: string|null, params: array{add: string|null}, error: array{error: array{message: string|null}}} $response */
+            /** @var array{id: string|null, params: array{add: string|null}, error: array{error: array{message: string|null}}, log?: array<int, string>} $response */
             $response = json_decode($responseJson, true);
 
             if (isset($response['error']['error']['message'])) {
@@ -124,6 +124,12 @@ final class Client
 
                 if (str_contains($message, 'Playwright was just installed or updated')) {
                     throw new PlaywrightOutdatedException();
+                }
+
+                // The call log says what the action was waiting on, e.g. which element
+                // intercepted a click, where the bare message only says "Timeout exceeded".
+                if (isset($response['log']) && $response['log'] !== []) {
+                    $message .= "\nCall log:\n  - ".implode("\n  - ", $response['log']);
                 }
 
                 throw new ExpectationFailedException($message);
