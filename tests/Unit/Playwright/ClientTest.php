@@ -87,3 +87,30 @@ it('sends the timeout as metadata so the server enforces it', function (): void 
     expect($sent['metadata']['timeout'])->toBe(100)
         ->and($sent['params']['timeout'])->toBe(100);
 });
+
+it('appends the call log to the error so a timeout says what it was waiting for', function (): void {
+    $connection = $this->createStub(WebsocketConnection::class);
+
+    $sent = null;
+    $connection->method('sendText')->willReturnCallback(function (string $payload) use (&$sent): void {
+        $sent = json_decode($payload, true);
+    });
+
+    $connection->method('receive')->willReturnCallback(function () use (&$sent): WebsocketMessage {
+        return WebsocketMessage::fromText((string) json_encode([
+            'id' => $sent['id'],
+            'error' => ['error' => ['message' => 'Timeout 100ms exceeded.']],
+            'log' => [
+                'waiting for locator(\'[data-cy="submit"]\')',
+                'element is not stable',
+            ],
+        ]));
+    });
+
+    $client = new Client();
+
+    new ReflectionProperty(Client::class, 'websocketConnection')->setValue($client, $connection);
+
+    expect(fn (): array => iterator_to_array($client->execute('page@1', 'click')))
+        ->toThrow("Timeout 100ms exceeded.\nCall log:\n  - waiting for locator('[data-cy=\"submit\"]')\n  - element is not stable");
+});
