@@ -39,3 +39,26 @@ it('hands the application the files and the fields of a multipart form', functio
 
     unlink($tempFile);
 });
+
+it('hands the application the bytes of a binary file unchanged', function (): void {
+    Route::get('/', fn (): string => '
+        <form method="post" action="/upload" enctype="multipart/form-data">
+            <input type="file" id="image" name="image">
+            <button type="submit">Upload</button>
+        </form>
+    ');
+    Route::post('/upload', fn (Request $request): string => 'received '.bin2hex((string) file_get_contents($request->file('image')->getPathname())));
+
+    // A PNG signature, bytes that are not valid UTF-8 and surrounding whitespace.
+    $bytes = "\x89PNG\r\n\x1a\n\x00\xff\xfe binary \r\n";
+
+    $tempFile = tempnam(sys_get_temp_dir(), 'test');
+    file_put_contents($tempFile, $bytes);
+
+    $page = visit('/');
+    $page->attach('#image', $tempFile)
+        ->click('Upload')
+        ->assertSee('received '.bin2hex($bytes));
+
+    unlink($tempFile);
+});

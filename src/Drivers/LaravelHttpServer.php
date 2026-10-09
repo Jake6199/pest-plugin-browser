@@ -369,8 +369,8 @@ final class LaravelHttpServer implements HttpServer
                 ob_start();
                 $response->sendContent();
             } finally {
-                // @phpstan-ignore-next-line
-                $content = mb_trim(ob_get_clean());
+                // The body may be binary (a download), so this must stay byte for byte: no mb_* and no trim.
+                $content = (string) ob_get_clean();
             }
         }
 
@@ -488,7 +488,9 @@ final class LaravelHttpServer implements HttpServer
         $files = [];
 
         foreach (explode("--{$boundary}", $body) as $part) {
-            $part = mb_ltrim($part, "\r\n");
+            // The part may hold binary file bytes, so this must stay byte-safe: no mb_* (Pint's
+            // mb_str_functions would turn an ltrim() into mb_ltrim(), which mangles invalid UTF-8).
+            $part = preg_replace('/^[\r\n]+/', '', $part) ?? $part;
             if ($part === '' || str_starts_with($part, '--')) {
                 continue;
             }
